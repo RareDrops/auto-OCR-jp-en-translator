@@ -1,0 +1,1 @@
+# auto-OCR-jp-en-translator
