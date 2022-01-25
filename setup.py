@@ -1,5 +1,8 @@
-from distutils.core import setup
-import py2exe
+import PyInstaller.__main__
 
-
-setup(console=['main.py'])
+PyInstaller.__main__.run([
+    'main.py',
+    '--onedir',
+    '-w',
+    '--icon=Assets/mashiro.ico'
+])
