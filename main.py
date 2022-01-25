@@ -5,10 +5,10 @@ import pyWinhook as pyHook
 import win32gui
 import cv2
 from PIL import ImageGrab
-
-#next task:
-#ocr feature
-#translate feature
+from configparser import ConfigParser
+#loads the configuration file and reads it
+config = ConfigParser()
+config.read('config.ini')
 
 
 click1 = False
@@ -19,7 +19,7 @@ class GUI(Frame):
         super().__init__()
         self.style = Style()
         self.initGUI()
-        self.run = False
+        self.run = True
 
     
     def initGUI(self):
@@ -35,12 +35,12 @@ class GUI(Frame):
         self.translate_button = Button(self.master, text="Translate", command=self.translate).pack(side=RIGHT)
         self.auto_translate_button = Button(self.master, text="Auto",command= self.start_translate).pack(side=RIGHT)
         self.stop_translate_button = Button(self.master,text="Stop",command=self.stop_translate).pack(side=RIGHT)
-        self.master.update_idletasks()
-        self.text_var = StringVar()
-        self.translated_label = Label(self.frame, textvariable=self.text_var,font=(24), wraplength=self.master.winfo_width()).pack(fill=BOTH)
+        self.master.update_idletasks() #finishes wrapping the buttons and gui(still continues to add the Label right after) This is needed to update the winfo_width of the program
+        self.text_var = StringVar() #creates an instance of strinvar which is used to dynamically change the text in translated_label
+        self.translated_label = Label(self.frame, textvariable=self.text_var,font=(config.get('text','font_size')), wraplength=self.master.winfo_width()).pack(fill=BOTH)
 
     def area(self):
-        img = ImageGrab.grab()
+        img = ImageGrab.grab() #basically screenshots the entire screen
         img.save('Assets/screenshot.png')
         instance = MouseEvents(img)
         instance.initialize()
@@ -49,12 +49,17 @@ class GUI(Frame):
         coordinates = MouseEvents.click.start_point + MouseEvents.click.end_point
         print(coordinates)
         
-    
+    #one time translation, gonna tweak later to screenshot then translate
     def translate(self):
         coordinates = MouseEvents.click.start_point + MouseEvents.click.end_point
         translated = functions.image_reader(coordinates)
         self.text_var.set(translated)
 
+    def start_translate(self):
+        self.run=True
+        self.auto_translate()
+        
+    #calls the function in functions.py and translatordeepl.py
     def auto_translate(self):
         coordinates = MouseEvents.click.start_point + MouseEvents.click.end_point
         translated = functions.auto_image_reader(coordinates)
@@ -62,22 +67,13 @@ class GUI(Frame):
             pass
         else:
             self.text_var.set(translated)
-        #repeats the code program every 2 seconds
+        #repeats auto_translate_initiator every x seconds
         if self.run == True:
-            self.master.after(2000, self.auto_translate)
-    
-    def start_translate(self):
-        self.run=True
-        self.auto_translate()
+            self.master.after(config.getint('translator','time_wait_to_check_for_screen_update')*1000, self.auto_translate)
 
     def stop_translate(self):
         self.run=False
 
-
-
-
-        
-        
 
 class MouseEvents:
     def __init__(self,img):
@@ -113,9 +109,9 @@ class MouseEvents:
 def main():
     root = Tk()
     default_font = font.nametofont("TkDefaultFont")
-    default_font.configure(family="Arial")
-    root.attributes('-topmost',True, '-alpha',0.6)
-    root.geometry("400x200+300+300")
+    default_font.configure(family=config.get('text','font_style'))
+    root.attributes('-topmost',True, '-alpha',config.getfloat('main','window_transparency'))
+    root.geometry(f"{config.get('main','window_size')}+300+300")
     my_gui = GUI()
     root.mainloop()
 
