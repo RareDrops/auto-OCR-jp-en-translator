@@ -1,8 +1,6 @@
 from tkinter import Tk,font, StringVar, RAISED, BOTH, RIGHT
 from tkinter.ttk import Frame, Button, Style, Label
 from functions import functions
-import pyWinhook as pyHook
-import win32gui
 import cv2
 from PIL import ImageGrab
 from configparser import ConfigParser
@@ -108,6 +106,7 @@ class MouseEvents:
 
 def main():
     root = Tk()
+    root.iconbitmap("Assets/mashiro.ico")
     default_font = font.nametofont("TkDefaultFont")
     default_font.configure(family=config.get('text','font_style'))
     root.attributes('-topmost',True, '-alpha',config.getfloat('main','window_transparency'))
