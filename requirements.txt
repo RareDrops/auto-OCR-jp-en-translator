@@ -3,3 +3,4 @@ easyocr==1.4
 beautifulsoup4==4.10.0
 Pillow==9.0.0
 selenium==4.1.0
+PyInstaller==4.8
