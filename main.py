@@ -3,7 +3,9 @@ from tkinter.ttk import Frame, Button, Style, Label
 from functions import functions
 import cv2
 from PIL import ImageGrab
-from configparser import ConfigParser
+from configparser import ConfigParser 
+import threading
+import queue
 #loads the configuration file and reads it
 config = ConfigParser()
 config.read('config.ini')
@@ -49,6 +51,7 @@ class GUI(Frame):
         
     #one time translation, gonna tweak later to screenshot then translate
     def translate(self):
+        self.area() #screenshots then makesa the user choose the area
         coordinates = MouseEvents.click.start_point + MouseEvents.click.end_point
         translated = functions.image_reader(coordinates)
         self.text_var.set(translated)
@@ -60,17 +63,36 @@ class GUI(Frame):
     #calls the function in functions.py and translatordeepl.py
     def auto_translate(self):
         coordinates = MouseEvents.click.start_point + MouseEvents.click.end_point
-        translated = functions.auto_image_reader(coordinates)
-        if translated == None:
-            pass
-        else:
-            self.text_var.set(translated)
-        #repeats auto_translate_initiator every x seconds
-        if self.run == True:
-            self.master.after(config.getint('translator','time_wait_to_check_for_screen_update')*1000, self.auto_translate)
-
+        #run thread
+        self.queue = queue.Queue()
+        ThreadedTask(coordinates,self.queue).start()
+        self.master.after(100, self.process_queue)
+    
+    def process_queue(self):
+        try:
+            translated = self.queue.get_nowait()
+            if translated == None:
+                pass
+            else:
+                self.text_var.set(translated)
+            #repeats auto_translate_initiator every x seconds
+            if self.run == True:
+                self.master.after(config.getint('translator','time_wait_to_check_for_screen_update')*1000, self.auto_translate)
+        except queue.Empty:
+            self.master.after(100, self.process_queue)
+    
     def stop_translate(self):
         self.run=False
+
+class ThreadedTask(threading.Thread):
+    def __init__(self, coordinates, queue):
+        super().__init__()
+        self.queue = queue
+        self.coordinates = coordinates
+
+    def run(self):
+        translated = functions.auto_image_reader(self.coordinates)
+        self.queue.put(translated)
 
 
 class MouseEvents:
