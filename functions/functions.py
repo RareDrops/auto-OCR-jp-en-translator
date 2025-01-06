@@ -18,8 +18,8 @@ def image_reader(coordinates):
     sentence = ""
     for element in result:
         sentence += element[1] + " "
-    translated = deepl_translator(sentence)
-    return translated
+    raw_text, translated = deepl_translator(sentence)
+    return (raw_text, translated)
     
 
 def auto_image_reader(coordinates):

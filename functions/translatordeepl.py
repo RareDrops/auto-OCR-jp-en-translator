@@ -18,20 +18,24 @@ url = "https://www.deepl.com/en/translator#ja/en/DeepL%E3%81%B8%E3%82%88%E3%81%8
 if config.getboolean('main','show_chrome_window') == False:
     options = Options()
     options.add_argument("--headless")
-driver = webdriver.Chrome('./chromedriver', options=options)
+driver = webdriver.Chrome(options=options)
 driver.get(url)
 
 
 # renders the JS code and stores all
 # of the information in static HTML code.
-html = driver.page_source 
+html = driver.page_source
 
-class_name = driver.find_element(By.CLASS_NAME, "lmt__textarea")
+class_name = driver.find_element(By.XPATH, "//div[@contenteditable='true' and @role='textbox' and @aria-multiline='true']")
 def deepl_translator(text):
     class_name.clear()
     class_name.send_keys(str(text))
     time.sleep(config.getint('translator','time_wait_to_translate'))
     html = driver.page_source.encode('utf-8')
     soup = BeautifulSoup(html, "html.parser")
-    all_divs = soup.find('div', {'id' : 'target-dummydiv'})
-    return all_divs.get_text()
+    target_elements = soup.findAll('span', {'class': '--l --r sentence_highlight'})
+    raw_text = target_elements[0].get_text()
+    translated_text = target_elements[1].get_text()
+    if translated_text == None:
+        return
+    return (raw_text, translated_text)

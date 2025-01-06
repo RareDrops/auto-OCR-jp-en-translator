@@ -37,7 +37,9 @@ class GUI(Frame):
         self.stop_translate_button = Button(self.master,text="Stop",command=self.stop_translate).pack(side=RIGHT)
         self.master.update_idletasks() #finishes wrapping the buttons and gui(still continues to add the Label right after) This is needed to update the winfo_width of the program
         self.text_var = StringVar() #creates an instance of strinvar which is used to dynamically change the text in translated_label
+        self.raw_text_var = StringVar() #creates an instance of strinvar which is used to dynamically change the text in translated_label
         self.translated_label = Label(self.frame, textvariable=self.text_var,font=(config.get('text', 'font_style'),config.get('text','font_size')), wraplength=self.master.winfo_width()).pack(fill=BOTH)
+        self.raw_text_label = Label(self.frame, textvariable=self.raw_text_var,font=(config.get('text', 'font_style'),config.get('text','font_size')), wraplength=self.master.winfo_width()).pack(fill=BOTH)
 
     def area(self):
         img = ImageGrab.grab() #basically screenshots the entire screen
@@ -53,7 +55,8 @@ class GUI(Frame):
     def translate(self):
         self.area() #screenshots then makesa the user choose the area
         coordinates = MouseEvents.click.start_point + MouseEvents.click.end_point
-        translated = functions.image_reader(coordinates)
+        raw_text, translated = functions.image_reader(coordinates)
+        self.raw_text_var.set(raw_text)
         self.text_var.set(translated)
 
     def start_translate(self):
